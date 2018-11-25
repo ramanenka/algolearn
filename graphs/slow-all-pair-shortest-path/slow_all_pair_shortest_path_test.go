@@ -1,9 +1,13 @@
 package slowallpairshortestpath
 
 import (
+	"fmt"
 	"math"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/ramanenka/algolearn/graphs"
 )
 
 func Test_slowAllPairShortestPath(t *testing.T) {
@@ -11,11 +15,16 @@ func Test_slowAllPairShortestPath(t *testing.T) {
 	type args struct {
 		W [][]int
 	}
+	type tovis struct {
+		u int
+		v int
+	}
 	tests := []struct {
 		name  string
 		args  args
 		want  [][]int
 		want1 [][]int
+		tovis tovis
 	}{
 		{
 			name: "case1",
@@ -42,17 +51,63 @@ func Test_slowAllPairShortestPath(t *testing.T) {
 				[]int{3, 2, 3, 3, 0},
 				[]int{3, 2, 3, 4, 4},
 			},
+			tovis: tovis{
+				u: 0,
+				v: 2,
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := slowAllPairShortestPath(tt.args.W)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("slowAllPairShortestPath() got = %v, want %v", got, tt.want)
+			W := tt.args.W
+			L, P := slowAllPairShortestPath(W)
+			if !reflect.DeepEqual(L, tt.want) {
+				t.Errorf("slowAllPairShortestPath() got = %v, want %v", L, tt.want)
 			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("slowAllPairShortestPath() got = %v, want %v", got1, tt.want1)
+			if !reflect.DeepEqual(P, tt.want1) {
+				t.Errorf("slowAllPairShortestPath() got = %v, want %v", P, tt.want1)
 			}
+
+			sb := &strings.Builder{}
+			sb.WriteString("digraph G {\n")
+			sb.WriteString(fmt.Sprintf(
+				"\tlabel=\"Shortest path between %d and %d is of length %d\";\n",
+				tt.tovis.u,
+				tt.tovis.v,
+				L[tt.tovis.u][tt.tovis.v],
+			))
+			for u, row := range W {
+				for v, w := range row {
+					if u == v || w == inf {
+						continue
+					}
+
+					sb.WriteString(fmt.Sprintf("\t%d -> %d ", u, v))
+					sb.WriteString("[")
+					sb.WriteString(fmt.Sprintf("label=\"%d\"", w))
+
+					isbold := false
+					up := tt.tovis.u
+					vp := tt.tovis.v
+					for vp != up {
+						p := P[up][vp]
+						if u == p && vp == v {
+							isbold = true
+							break
+						}
+						vp = p
+					}
+
+					if isbold {
+						sb.WriteString(",style=bold")
+					}
+
+					sb.WriteString("];\n")
+				}
+			}
+
+			sb.WriteString("}\n")
+			graphs.Dotviz(tt.name, sb.String())
 		})
 	}
 }
