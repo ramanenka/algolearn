@@ -1,9 +1,11 @@
-package graphs
+package bellmanford
 
 import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/ramanenka/algolearn/graphs"
 )
 
 func Test_bellmanFord(t *testing.T) {
@@ -78,7 +80,7 @@ func Test_bellmanFord(t *testing.T) {
 				}
 			}
 			sb.WriteString("}")
-			Dotviz("bellman_ford_"+tt.name, sb.String())
+			graphs.Dotviz("bellman_ford_"+tt.name, sb.String())
 		})
 	}
 }
